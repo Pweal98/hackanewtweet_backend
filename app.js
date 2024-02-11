@@ -10,6 +10,7 @@ var app = express();
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var messagesRouter = require('./routes/messages')
+var hashtagsRouter = require('./routes/hastags')
 
 app.use(cors());
 app.use(logger('dev'));
@@ -19,6 +20,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
-app.use('/users', usersRouter);
 app.use('/messages', messagesRouter);
+app.use('/hashtags', hashtagsRouter);
+app.use('/users', usersRouter);
 module.exports = app;

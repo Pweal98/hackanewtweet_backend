@@ -54,15 +54,15 @@ router.post('/signin', function(req, res) {
   });
 });
 
-router.get('/searchtoken', function(req,res) {
-  User.findOne({token : req.body.token}
-    .then(data => {
-      if(data) {
-        res.json({ result: true, data: data });
-      } else {
-        res.json({ result: false, error: 'User not found' });
-      }
-    }))
+router.post('/searchtoken', function(req,res) {
+  User.findOne({token : req.body.token}).then(data => {
+    console.log('hey')
+    if (data) {
+      res.json({ result: true, data: data });
+    } else {
+      res.json({ result: false, error: 'User not found or wrong password' });
+    }
+  });
 })
 
 module.exports = router;

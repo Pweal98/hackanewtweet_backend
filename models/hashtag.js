@@ -5,6 +5,6 @@ const HastagShema = mongoose.Schema({
   hashtag : String,
 });
 
-const Hastag = mongoose.model('Hastags', HastagShema);
+const Hastags = mongoose.model('hashtags', HastagShema);
 
-module.exports = Hastag;
+module.exports = Hastags;
