@@ -29,64 +29,60 @@ router.get('/', function(req, res){
 
 
 router.post('/addMessage', async (req, res) => {
-    try {
-      if (!checkBody(req.body, [ 'message'])) {
-        res.json({ result: false, error: 'Missing or empty fields' });
-        return;
+  try {
+      if (!checkBody(req.body, ['message'])) {
+          res.json({ result: false, error: 'Missing or empty fields' });
+          return;
       }
-  
+
       // Créer un nouveau message
       const newMessage = new Messages({
-        message: req.body.message,
-        users: req.body.users,
-        date : Date.now()
+          message: req.body.message,
+          users: req.body.users,
+          date: Date.now()
       });
-  
+
       // Sauvegarder le message
       const savedMessage = await newMessage.save();
-  
-      // Créer un nouveau like lié au message
-      const newLike = new Likes({
-        message: savedMessage._id,
-        users: req.body.users,
-      });
-  
-      // Sauvegarder le like
-      const savedLike = await newLike.save();
-  
-      // Ajouter le like à la liste des likes du message
-      savedMessage.likes.push(savedLike._id);
-      
-      // Si un hashtag est fourni, créer un nouveau hashtag et l'ajouter au message
-      if (req.body.hashtag) {
-        const existingHashtag = await Hashtags.findOne({ hashtag: req.body.hashtag });
 
-        if (existingHashtag) {
-          console.log('kkk')
-            // Si un hashtag similaire existe déjà, ajoutez simplement l'ID du message au tableau
-            existingHashtag.message.push(savedMessage._id);
-            await existingHashtag.save();
-            savedMessage.hashtags.push(existingHashtag._id);
-        } else {
-            // Si aucun hashtag similaire n'existe, créez un nouveau hashtag
-            const newHashtag = new Hashtags({
-                message: [savedMessage._id],
-                hashtag: req.body.hashtag,
-            });
-            const savedHashtag = await newHashtag.save();
-            savedMessage.hashtags.push(savedHashtag._id);
-        }
+      // Créer un tableau pour stocker les ID des hashtags associés au message
+      const hashtagIDs = [];
+
+      // Parcourir les hashtags fournis dans la requête
+      for (let i = 0; i < req.body.hashtag.length; i++) {
+
+          // Vérifier si le hashtag existe déjà dans la base de données
+          const existingHashtag = await Hashtags.findOne({ hashtag: req.body.hashtag[i] });
+
+          if (existingHashtag) {
+              // Si un hashtag similaire existe déjà, ajoutez simplement l'ID du message au tableau
+              existingHashtag.message.push(savedMessage._id);
+              await existingHashtag.save();
+              hashtagIDs.push(existingHashtag._id);
+          } else {
+              // Si aucun hashtag similaire n'existe, créez un nouveau hashtag
+              const newHashtag = new Hashtags({
+                  message: [savedMessage._id],
+                  hashtag: req.body.hashtag[i],
+              });
+
+              const savedHashtag = await newHashtag.save();
+              hashtagIDs.push(savedHashtag._id);
+          }
       }
-  
-      // Sauvegarder le message mis à jour avec les likes et hashtags
+
+      // Ajouter les IDs des hashtags au message
+      savedMessage.hashtags = hashtagIDs;
+
+      // Enregistrer les modifications apportées au message
       await savedMessage.save();
-  
-      res.json({ result: true, dataMessage: savedMessage });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ result: false, error: 'Internal server error' });
-    }
-  });
+
+      res.json({ result: true, message: 'Message ajouté avec succès' });
+  } catch (error) {
+      res.json({ result: false, error: error.message });
+  }
+});
+
 
 
 
